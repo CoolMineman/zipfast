@@ -27,8 +27,11 @@ export fn Java_zipfast_Native_libdeflate_1inflate0(env: *j.JNIEnv, cls: j.jclass
     _ = cls;
     const deflater0 = long2ptr(*ld.struct_libdeflate_decompressor, deflater);
     const src0 = env.*.GetDirectBufferAddress(env, src) orelse return -1;
-    const dst0 = env.*.GetDirectBufferAddress(env, dst) orelse return -2;
+    var copy: j.jboolean = undefined;
+    const dst0 = env.*.GetPrimitiveArrayCritical(env, dst, copy) orelse return -2;
     var actual_out_bytes: usize = 0;
-    return @enumToInt(ld.libdeflate_deflate_decompress(deflater0, src0 + @intCast(usize, src_start), @intCast(usize, src_size), dst0 + @intCast(usize, dst_pos), @intCast(usize, dst_size), &actual_out_bytes));
+    const r = @enumToInt(ld.libdeflate_deflate_decompress(deflater0, src0 + @intCast(usize, src_start), @intCast(usize, src_size), @ptrCast([*]u8, dst0) + @intCast(usize, dst_pos), @intCast(usize, dst_size), &actual_out_bytes));
+    env.*.ReleasePrimitiveArrayCritical(env, dst, dst0, 0);
+    return r;
 }
 

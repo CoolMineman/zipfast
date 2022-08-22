@@ -14,7 +14,7 @@ import java.util.Locale;
 public class Native {
     private Native() { }
 
-    static final String VERSION = "0";
+    static final String VERSION = "2";
 
     static {
         try {
@@ -78,8 +78,10 @@ public class Native {
                 Path dir = Paths.get(""/*CWD*/).toAbsolutePath().resolve(VERSION).resolve(triple);
                 Files.createDirectories(dir);
                 nativePath = dir.resolve(libraryname);
-                try (InputStream is = url.openStream()) {
-                    Files.copy(is, nativePath);
+                if (!nativePath.toFile().exists()) {
+                    try (InputStream is = url.openStream()) {
+                        Files.copy(is, nativePath);
+                    }
                 }
             }
             System.load(nativePath.toFile().getCanonicalPath());
@@ -98,17 +100,17 @@ public class Native {
 
     public static native void libdeflate_inflater_free(long ptr);
 
-    public static void libdeflate_inflate(long inflater, ByteBuffer src, int src_pos, int src_size, ByteBuffer dst, int dst_pos, int dst_size) {
+    public static void libdeflate_inflate(long inflater, ByteBuffer src, int src_pos, int src_size, byte[] dst, int dst_pos, int dst_size) {
         if (src_pos < 0 || src_pos >= src.capacity()) {
             throw new IndexOutOfBoundsException("Invalid src_start");
         }
         if (src_size < 0 || src_pos + src_size > src.capacity()) {
             throw new IndexOutOfBoundsException("Invalid src_end");
         }
-        if (dst_pos < 0 || dst_pos >= dst.capacity()) {
+        if (dst_pos < 0 || dst_pos >= dst.length) {
             throw new IndexOutOfBoundsException("Invalid dst_pos");
         }
-        if (dst_size < 0 || dst_pos + dst_size > dst.capacity()) {
+        if (dst_size < 0 || dst_pos + dst_size > dst.length) {
             throw new IndexOutOfBoundsException("Invalid dst_size");
         }
         int r = libdeflate_inflate0(inflater, src, src_pos, src_size, dst, dst_pos, dst_size);
@@ -117,5 +119,5 @@ public class Native {
         }
     }
 
-    private static native int libdeflate_inflate0(long inflater, ByteBuffer src, int src_start, int src_size, ByteBuffer dst, int dst_pos, int dst_size);
+    private static native int libdeflate_inflate0(long inflater, ByteBuffer src, int src_start, int src_size, byte[] dst, int dst_pos, int dst_size);
 }

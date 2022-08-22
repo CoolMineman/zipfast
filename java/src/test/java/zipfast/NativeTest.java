@@ -17,9 +17,9 @@ public class NativeTest {
         ndecoded.put(decodeded);
         ndecoded.position(0);
         ByteBuffer expected = ByteBuffer.wrap("We're no strangers to love\nYou know the rules and so do I\nA full commitment's what I'm thinking of\nYou wouldn't get this from any other guy".getBytes(StandardCharsets.UTF_8));
-        ByteBuffer inflated = ByteBuffer.allocateDirect(expected.capacity());
-        Native.libdeflate_inflate(inflater, ndecoded, 0, ndecoded.capacity(), inflated, 0, inflated.capacity());
-        assertEquals(expected, inflated);
+        byte[] inflated = new byte[expected.capacity()];
+        Native.libdeflate_inflate(inflater, ndecoded, 0, ndecoded.capacity(), inflated, 0, inflated.length);
+        assertEquals(expected, ByteBuffer.wrap(inflated));
         Native.libdeflate_inflater_free(inflater);
     }
 }
